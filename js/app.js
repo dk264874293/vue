@@ -1,31 +1,60 @@
-var list = [
-	{
-		title:"吃饭打豆豆",
-		isCheckbox: true
+var stote = {
+	save(key,value){
+		localStorage.setItem(key,JSON.stringify(value));
 	},
-	{
-		title:"企额贷",
-		isCheckbox: false
-	},
-	{
-		title:'学会使用Vue',
-		isCheckbox:false
+	fetch(key){
+		return JSON.parse(localStorage.getItem(key)) || [];
 	}
-];
+}
 
-new Vue({
+
+var list = stote.fetch('miaov-class')
+
+var filter = {
+	all:function(list){
+		return list
+	},
+	finished:function(list){
+		return list.filter(function(item){
+			return item.isCheckbox;
+		})
+	},
+	unfinished:function(list){
+		return list.filter(function(item){
+			return !item.isCheckbox;
+		})
+	}
+}
+
+var vm = new Vue({
 	el : '.main',
 	data:{
 		list:list,
 		todo:'',
 		edtorTodos:'',
-		beforeTitle:''
+		beforeTitle:'',
+		visibility:'all'
 	},
 	computed:{
 		noChecklength(){
 			return this.list.filter(function(item){
 				return !item.isCheckbox;
 			}).length
+		},
+		filteredList:function(){//过滤
+
+			return filter[this.visibility] ? filter[this.visibility](list) : list;
+		}
+	},
+	watch:{//监听属性
+		// list:function(){//监控list属性,浅监控
+		// 	stote.save('miaov-class',this.list);
+		// }
+		list:{
+			handler:function(){
+				stote.save("miaov-class",this.list);
+			},
+			deep:true//深监控
 		}
 	},
 	methods:{
@@ -63,3 +92,10 @@ new Vue({
 		}
 	}
 });
+function watchHashChange(){
+	var hash = window.location.hash.slice(1);
+	vm.visibility = hash;
+	console.log(hash);
+}
+watchHashChange();
+window.addEventListener('hashchange',watchHashChange);
